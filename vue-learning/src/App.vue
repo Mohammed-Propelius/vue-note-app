@@ -1,26 +1,48 @@
 <script setup>
 import { ref } from 'vue';
+import {v4 as uuidv4} from 'uuid';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 const showModal = ref(false)
-
 // two-way binding 
 const newNote = ref("")
+
+// pushing the note array 
 const notes = ref([])
 
-const addNotes = () => {
-  notes.value.push({
-    id:Math.floor(Math.random() * 1000000),
-    text:newNote.value,
-    date:new Date()
-  })
+
+// Genrating Light Colors
+function generateLightColorHex() {
+  let color = "#";
+  for (let i = 0; i < 3; i++)
+    color += ("0" + Math.floor(((1 + Math.random()) * Math.pow(16, 2)) / 2).toString(16)).slice(-2);
+  return color;
 }
+
+// Adding Notes
+const addNotes = () => {
+  if(newNote.value.length <= 10){
+    return toast.error("Need more than 10 words")
+  }
+  notes.value.push({
+    id:uuidv4(),
+    text:newNote.value,
+    date:new Date(),
+    backgroundColor:generateLightColorHex()
+  })
+  showModal.value = false;
+  newNote.value = ""
+}
+
+
 </script>
 <template>
   <main>
     <div v-if="showModal" class="overlay">
       <div class="modal">
         <textarea v-model="newNote" name="note" id="note" cols="30" rows="10"></textarea>
-        <button>Add Note</button>
+        <button @click="addNotes">Add Note</button>
         <button class="close" @click="showModal=false">Close</button>
       </div>
     </div>
@@ -30,30 +52,31 @@ const addNotes = () => {
         <h1>Notes</h1>
         <button @click="showModal=true">+</button>
       </header>
+      <div v-if="!notes.values.length">
+        <h2>Start Your adding Your Notes by Clicking "+"</h2>
+      </div>
       <div class="cards-container">
-        <div class="card">
-          <p class="main-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente quasi corporis amet perspiciatis, libero est!</p>
-          <p class="date">04/27/6853</p>
-        </div>
-        <div class="card">
-          <p class="main-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente quasi corporis amet perspiciatis, libero est!</p>
-          <p class="date">04/27/6853</p>
+        <div v-for="note in notes" :key="note.id" class="card" :style="{backgroundColor:note.backgroundColor}">
+          <p class="main-text">{{ note.text }}</p>
+          <p class="date">{{ note.date.toLocaleDateString("en-US") }}</p>
         </div>
       </div>
     </div>
   </main>
-</template>
+</template> 
 
 <style scoped>
   main {
     height: 100vh;
-    width: 100vw
+    width: 100vw;
+    overflow-y: hidden;
   }
 
   .container {
     max-width: 1000px;
-    padding: 10px;
-    margin: 0 auto
+    /* padding: 10px; */
+    margin: 0 auto;
+    overflow:hidden
   }
 
   header {
@@ -112,6 +135,7 @@ const addNotes = () => {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
 
   .modal {
